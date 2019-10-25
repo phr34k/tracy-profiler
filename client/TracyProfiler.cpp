@@ -504,12 +504,13 @@ static uint64_t GetPid()
 #endif
 }
 
-static BroadcastMessage& GetBroadcastMessage( const char* procname, size_t pnsz, int& len )
+static BroadcastMessage& GetBroadcastMessage( const char* procname, size_t pnsz, int port,  int& len )
 {
     static BroadcastMessage msg;
 
     msg.broadcastVersion = BroadcastVersion;
     msg.protocolVersion = ProtocolVersion;
+	msg.port = port;
 
     memcpy( msg.programName, procname, pnsz );
     memset( msg.programName + pnsz, 0, WelcomeMessageProgramNameSize - pnsz );
@@ -1085,6 +1086,10 @@ Profiler::Profiler()
 #endif
 
     m_timeBegin.store( GetTime(), std::memory_order_relaxed );
+
+#ifndef TRACY_NO_AUTOINIT
+	StartWorker();
+#endif
 }
 
 
@@ -1220,20 +1225,33 @@ void Profiler::Worker()
 
     moodycamel::ConsumerToken token( GetQueue() );
 
-    ListenSocket listen;
-    if( !listen.Listen( port, 8 ) )
-    {
-        for(;;)
-        {
-            if( ShouldExit() )
-            {
-                m_shutdownFinished.store( true, std::memory_order_relaxed );
-                return;
-            }
+	int listenPort = -1;
+	bool isListening = false;
+	ListenSocket listen;
+	for (int portIdx = 0; portIdx < 128; portIdx++)
+	{
+		if (listen.Listen(port+portIdx, 8))
+		{
+			isListening = true;
+			listenPort = port + portIdx; // update actual port
+			break;
+		}
+	}
+	
+	// No listen port has been found.
+	if (isListening == false)
+	{
+		for (;;)
+		{
+			if (ShouldExit())
+			{
+				m_shutdownFinished.store(true, std::memory_order_relaxed);
+				return;
+			}
 
-            ClearQueues( token );
-        }
-    }
+			ClearQueues(token);
+		}
+	}
 
 #ifndef TRACY_NO_BROADCAST
     m_broadcast = (UdpBroadcast*)tracy_malloc( sizeof( UdpBroadcast ) );
@@ -1247,7 +1265,7 @@ void Profiler::Worker()
 #endif
 
     int broadcastLen = 0;
-    auto& broadcastMsg = GetBroadcastMessage( procname, pnsz, broadcastLen );
+    auto& broadcastMsg = GetBroadcastMessage( procname, pnsz, listenPort, broadcastLen );
     uint64_t lastBroadcast = 0;
 
     // Connections loop.

@@ -89,9 +89,28 @@ Socket::~Socket()
     }
 }
 
-bool Socket::Connect( const char* addr, int port )
+bool Socket::Connect( const char* sourceaddr, int port )
 {
     assert( m_sock == -1 );
+
+	// parse override port if present and remove port from string
+	char addr[1024];
+	int olen = strlen(sourceaddr) + 1;
+	if (olen > sizeof(addr))
+		olen = sizeof(addr);
+
+	memcpy(addr, sourceaddr, olen);
+	int len = strlen(addr);
+	char* portstring = nullptr;
+	for (int i = 0; i < len; i++)
+	{
+		if (addr[i] == ':')
+		{
+			addr[i] = 0; // terminate string here
+			sscanf(addr + i + 1, "%d", &port);
+			break;
+		}
+	}
 
     struct addrinfo hints;
     struct addrinfo *res, *ptr;
@@ -310,8 +329,14 @@ bool ListenSocket::Listen( int port, int backlog )
     int val = 1;
     setsockopt( m_sock, SOL_SOCKET, SO_REUSEADDR, &val, sizeof( val ) );
 #endif
-    if( bind( m_sock, res->ai_addr, res->ai_addrlen ) == -1 ) return false;
-    if( listen( m_sock, backlog ) == -1 ) return false;
+	if (bind(m_sock, res->ai_addr, res->ai_addrlen) == -1) {
+		Close();  
+		return false;
+	}
+    if( listen( m_sock, backlog ) == -1 ) {
+		Close();  
+		return false;
+	}
     return true;
 }
 

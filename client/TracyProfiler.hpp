@@ -178,6 +178,8 @@ public:
 
     static tracy_force_inline void SendFrameImage( const void* image, uint16_t w, uint16_t h, uint8_t offset, bool flip )
     {
+		assert(image != nullptr);
+
         auto& profiler = GetProfiler();
 #ifdef TRACY_ON_DEMAND
         if( !profiler.IsConnected() ) return;

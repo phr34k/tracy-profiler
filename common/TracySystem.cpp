@@ -1,4 +1,5 @@
 #if defined _MSC_VER || defined __CYGWIN__ || defined _WIN32
+#define _CRT_SECURE_NO_WARNINGS
 # ifndef WIN32_LEAN_AND_MEAN
 #  define WIN32_LEAN_AND_MEAN
 # endif
@@ -118,8 +119,7 @@ void SetThreadName( const char* name )
 const char* GetThreadName( uint64_t id )
 {
     static char buf[256];
-#if 0
-//#ifdef TRACY_ENABLE
+#ifdef TRACY_ENABLE
     auto ptr = GetThreadNameData().load( std::memory_order_relaxed );
     while( ptr )
     {
@@ -129,7 +129,8 @@ const char* GetThreadName( uint64_t id )
         }
         ptr = ptr->next;
     }
-#else
+#endif
+#if 1
 #  ifdef _WIN32
 //#    if defined NTDDI_WIN10_RS2 && NTDDI_VERSION >= NTDDI_WIN10_RS2
     auto hnd = OpenThread( THREAD_QUERY_LIMITED_INFORMATION, FALSE, (DWORD)id );
