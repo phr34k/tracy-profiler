@@ -118,7 +118,8 @@ void SetThreadName( const char* name )
 const char* GetThreadName( uint64_t id )
 {
     static char buf[256];
-#ifdef TRACY_ENABLE
+#if 0
+//#ifdef TRACY_ENABLE
     auto ptr = GetThreadNameData().load( std::memory_order_relaxed );
     while( ptr )
     {
@@ -130,20 +131,20 @@ const char* GetThreadName( uint64_t id )
     }
 #else
 #  ifdef _WIN32
-#    if defined NTDDI_WIN10_RS2 && NTDDI_VERSION >= NTDDI_WIN10_RS2
+//#    if defined NTDDI_WIN10_RS2 && NTDDI_VERSION >= NTDDI_WIN10_RS2
     auto hnd = OpenThread( THREAD_QUERY_LIMITED_INFORMATION, FALSE, (DWORD)id );
     if( hnd != 0 )
     {
         PWSTR tmp;
         GetThreadDescription( hnd, &tmp );
-        auto ret = wcstombs( buf, tmp, 256 );
+        auto vret = wcstombs( buf, tmp, sizeof(buf) );
         CloseHandle( hnd );
-        if( ret != 0 )
+        if(vret != 0 )
         {
             return buf;
         }
     }
-#    endif
+//#    endif
 #  elif defined __GLIBC__ && !defined __ANDROID__ && !defined __EMSCRIPTEN__ && !defined __CYGWIN__
     if( pthread_getname_np( (pthread_t)id, buf, 256 ) == 0 )
     {
@@ -180,7 +181,11 @@ const char* GetThreadName( uint64_t id )
     return buf;
 #  endif
 #endif
+#ifdef _MSC_VER
+	sprintf_s(buf, "%" PRIu64, id);
+#else
     sprintf( buf, "%" PRIu64, id );
+#endif
     return buf;
 }
 

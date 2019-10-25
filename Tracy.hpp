@@ -6,6 +6,10 @@
 
 #ifndef TRACY_ENABLE
 
+// ++RED
+#define TracyInit
+// --RED
+
 #define ZoneNamed(x,y)
 #define ZoneNamedN(x,y,z)
 #define ZoneNamedC(x,y,z)
@@ -59,6 +63,10 @@
 #define TracyFreeS(x,y)
 
 #else
+
+// ++RED
+#define TracyInit tracy::Profiler::StartWorker()
+// --RED
 
 #include "client/TracyLock.hpp"
 #include "client/TracyProfiler.hpp"

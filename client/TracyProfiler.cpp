@@ -860,8 +860,10 @@ static void CrashHandler( int signal, siginfo_t* info, void* /*ucontext*/ )
 enum { QueuePrealloc = 256 * 1024 };
 
 static Profiler* s_instance;
-static Thread* s_thread;
-static Thread* s_compressThread;
+// ++RED
+static Thread* s_thread = nullptr;
+static Thread* s_compressThread = nullptr;
+// --RED
 
 #ifdef TRACY_HAS_SYSTEM_TRACING
 static Thread* s_sysTraceThread = nullptr;
@@ -1006,6 +1008,8 @@ TRACY_API LuaZoneState& GetLuaZoneState() { return s_luaZoneState; }
 
 enum { BulkSize = TargetFrameSize / QueueItemSize };
 
+// ++RED
+
 Profiler::Profiler()
     : m_timeBegin( 0 )
     , m_mainThread( detail::GetThreadHandleImpl() )
@@ -1057,27 +1061,6 @@ Profiler::Profiler()
     }
 #endif
 
-    s_thread = (Thread*)tracy_malloc( sizeof( Thread ) );
-    new(s_thread) Thread( LaunchWorker, this );
-
-    s_compressThread = (Thread*)tracy_malloc( sizeof( Thread ) );
-    new(s_compressThread) Thread( LaunchCompressWorker, this );
-
-#ifdef TRACY_HAS_SYSTEM_TRACING
-    if( SysTraceStart() )
-    {
-        s_sysTraceThread = (Thread*)tracy_malloc( sizeof( Thread ) );
-        new(s_sysTraceThread) Thread( SysTraceWorker, nullptr );
-    }
-#endif
-
-#if defined PTW32_VERSION
-    s_profilerThreadId = pthread_getw32threadid_np( s_thread->Handle() );
-#elif defined __WINPTHREADS_VERSION
-    s_profilerThreadId = GetThreadId( (HANDLE)pthread_gethandle( s_thread->Handle() ) );
-#elif defined _MSC_VER
-    s_profilerThreadId = GetThreadId( s_thread->Handle() );
-#endif
 #if defined _WIN32
     AddVectoredExceptionHandler( 1, CrashFilter );
 #endif
@@ -1103,6 +1086,40 @@ Profiler::Profiler()
 
     m_timeBegin.store( GetTime(), std::memory_order_relaxed );
 }
+
+
+void Profiler::StartWorker()
+{
+    if (s_thread != nullptr)
+        return; // already initialized
+
+    auto& profiler = GetProfiler();
+    s_thread = (Thread*)tracy_malloc(sizeof(Thread));
+    new(s_thread) Thread(LaunchWorker, &profiler);
+
+    s_compressThread = (Thread*)tracy_malloc(sizeof(Thread));
+    new(s_compressThread) Thread(LaunchCompressWorker, &profiler);
+
+#if defined PTW32_VERSION
+    s_profilerThreadId = pthread_getw32threadid_np(s_thread->Handle());
+#elif defined __WINPTHREADS_VERSION
+    s_profilerThreadId = GetThreadId((HANDLE)pthread_gethandle(s_thread->Handle()));
+#elif defined _MSC_VER
+    s_profilerThreadId = GetThreadId(s_thread->Handle());
+#endif
+
+
+#ifdef TRACY_HAS_SYSTEM_TRACING
+    if (SysTraceStart())
+    {
+        s_sysTraceThread = (Thread*)tracy_malloc(sizeof(Thread));
+        new(s_sysTraceThread) Thread(SysTraceWorker, nullptr);
+    }
+#endif
+}
+
+
+// --RED
 
 Profiler::~Profiler()
 {
@@ -1965,7 +1982,6 @@ bool Profiler::CommitData()
 
 bool Profiler::NeedDataSize( size_t len )
 {
-    assert( len <= TargetFrameSize );
     bool ret = true;
     if( m_bufferOffset - m_bufferStart + len > TargetFrameSize )
     {

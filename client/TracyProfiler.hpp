@@ -94,6 +94,10 @@ class Profiler
 public:
     Profiler();
     ~Profiler();
+	
+// ++RED
+	static void StartWorker();
+// --RED
 
     static tracy_force_inline int64_t GetTime()
     {
