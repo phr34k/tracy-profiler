@@ -1,3 +1,5 @@
+#include "TracyConfig.h"
+
 #include <chrono>
 #include <mutex>
 #include <thread>
@@ -271,6 +273,17 @@ void DeadlockTest2()
     deadlockMutex1.lock();
 }
 
+void MemoryTest()
+{
+	for (;;)
+	{
+		char* v = new char[100];
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		delete[] v;
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+}
+
 int main()
 {
     auto t1 = std::thread( TestFunction );
@@ -295,6 +308,7 @@ int main()
     auto t20 = std::thread( OnlyMemory );
     auto t21 = std::thread( DeadlockTest1 );
     auto t22 = std::thread( DeadlockTest2 );
+	auto t23 = std::thread(MemoryTest);
 
     int x, y;
     auto image = stbi_load( "image.jpg", &x, &y, nullptr, 4 );
@@ -307,7 +321,8 @@ int main()
             ZoneScoped;
             std::this_thread::sleep_for( std::chrono::milliseconds( 2 ) );
         }
-        FrameImage( image, x, y, 0, false );
+		if(image != nullptr)
+			FrameImage( image, x, y, 0, false );
         FrameMark;
     }
 }

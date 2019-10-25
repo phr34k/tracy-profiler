@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="client">
+      <UniqueIdentifier>{c094ece0-e26e-4e6e-a915-2d3796b865aa}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\test\image.jpg">
+      <Filter>Source Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\test\stb_image.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TracyConfig.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\tracy_concurrentqueue.h">
+      <Filter>client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\tracy_rpmalloc.hpp">
+      <Filter>client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\TracyArmCpuTable.hpp">
+      <Filter>client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\TracyCallstack.h">
+      <Filter>client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\TracyCallstack.hpp">
+      <Filter>client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\TracyDxt1.hpp">
+      <Filter>client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\TracyFastVector.hpp">
+      <Filter>client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\TracyLock.hpp">
+      <Filter>client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\TracyProfiler.hpp">
+      <Filter>client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\TracyScoped.hpp">
+      <Filter>client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\TracySysTime.hpp">
+      <Filter>client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\TracySysTrace.hpp">
+      <Filter>client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\TracySysTracePayload.hpp">
+      <Filter>client</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\client\TracyThread.hpp">
+      <Filter>client</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\test\test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\TracyClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="testTracy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\client\tracy_rpmalloc.cpp">
+      <Filter>client</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\client\TracyCallstack.cpp">
+      <Filter>client</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\client\TracyDxt1.cpp">
+      <Filter>client</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\client\TracyProfiler.cpp">
+      <Filter>client</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\client\TracySysTime.cpp">
+      <Filter>client</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\client\TracySysTrace.cpp">
+      <Filter>client</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

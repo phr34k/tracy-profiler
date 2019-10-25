@@ -8,6 +8,7 @@ Debug
 *.d
 *.o
 *.swp
+Tracy.exe
 imgui.ini
 test/tracy_test
 test/tracy_test.exe

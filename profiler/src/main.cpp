@@ -344,10 +344,17 @@ int main( int argc, char** argv )
                         auto address = addr.GetText();
 
                         const auto ipNumerical = addr.GetNumber();
-                        auto it = clients.find( ipNumerical );
+						const auto ipKey = addr.GetNumber() ^ bm.port;
+                        auto it = clients.find(ipKey);
                         if( it == clients.end() )
                         {
                             std::string ip( address );
+
+							// add port
+							char portnum[40];
+							sprintf(portnum, ":%d", bm.port);
+							ip += portnum;
+
                             resolvLock.lock();
                             if( resolvMap.find( ip ) == resolvMap.end() )
                             {
@@ -360,7 +367,7 @@ int main( int argc, char** argv )
                                 } );
                             }
                             resolvLock.unlock();
-                            clients.emplace( addr.GetNumber(), ClientData { time, protoVer, activeTime, procname, std::move( ip ) } );
+                            clients.emplace(ipKey, ClientData { time, protoVer, activeTime, procname, std::move( ip ) } );
                         }
                         else
                         {
@@ -549,7 +556,7 @@ int main( int argc, char** argv )
                     assert( name != resolvMap.end() );
                     ImGuiSelectableFlags flags = ImGuiSelectableFlags_SpanAllColumns;
                     if( badProto ) flags |= ImGuiSelectableFlags_Disabled;
-                    if( ImGui::Selectable( name->second.c_str(), &sel, flags ) && !loadThread.joinable() )
+                    if( ImGui::Selectable( v.second.address.c_str(), &sel, flags ) && !loadThread.joinable() )
                     {
                         view = std::make_unique<tracy::View>( v.second.address.c_str(), port, fixedWidth, smallFont, bigFont, SetWindowTitleCallback );
                     }
