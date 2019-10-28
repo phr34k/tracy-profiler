@@ -22,7 +22,8 @@
 #include "common/TracySystem.hpp"
 #include "client/TracyProfiler.hpp"
 
-#define TracyDynamicZoneBegin(line, source, func, color, name)                  tracy::detail::I_TracyDynamicZoneBegin(line,source,func,color, name, tracy::Profiler::GetTime())
+#define TracyDynamicZoneBegin(line, source, func, color, name)                  tracy::detail::I_TracyDynamicZoneBegin<0>(line,source,func,color, name, tracy::Profiler::GetTime())
+#define TracyDynamicZoneBeginS(line, source, func, color, name, stackdepth)     tracy::detail::I_TracyDynamicZoneBegin<stackdepth>(line,source,func,color, name, tracy::Profiler::GetTime())
 #define TracyDynamicZoneEnd()                                                   tracy::detail::I_TracyDynamicZoneEnd(tracy::Profiler::GetTime())
 #define TracyDynamicZonePseudo(line, source, func, color, name, startNs, endNs) tracy::detail::I_TracyDynamicZoneBegin(line,source,func,color, name, startNs); tracy::detail::I_TracyDynamicZoneEnd(endNs)
 #define TracyDynamicZoneText(text)                                              tracy::detail::I_TracyDynamicZoneText(text)
@@ -39,6 +40,7 @@ namespace tracy
     namespace detail
     {
 
+		template <int stackdepth>
         static inline void I_TracyDynamicZoneBegin(uint32_t line, const char* source, const char* func, uint32_t color, const char* name, int64_t time)
         {
 #ifdef TRACY_ON_DEMAND
@@ -76,11 +78,16 @@ namespace tracy
             auto token = GetToken();
             auto& tail = token->get_tail_index();
             auto item = token->enqueue_begin(magic);
-            MemWrite(&item->hdr.type, QueueType::ZoneBeginAllocSrcLocCallstack);
+			if(stackdepth == 0)
+				MemWrite(&item->hdr.type, QueueType::ZoneBeginAllocSrcLoc);
+			else
+				MemWrite(&item->hdr.type, QueueType::ZoneBeginAllocSrcLocCallstack);
             MemWrite(&item->zoneBegin.time, time);
             MemWrite(&item->zoneBegin.srcloc, (uint64_t)ptr);
             tail.store(magic + 1, std::memory_order_release);
 
+			if (stackdepth > 0)
+				tracy::GetProfiler().SendCallstack(stackdepth);
 
             return;
         }
