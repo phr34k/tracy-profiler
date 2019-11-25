@@ -132,7 +132,7 @@ const char* GetThreadName( uint64_t id )
 #endif
 #if 1
 #  ifdef _WIN32
-//#    if defined NTDDI_WIN10_RS2 && NTDDI_VERSION >= NTDDI_WIN10_RS2
+#    if defined NTDDI_WIN10_RS2 && NTDDI_VERSION >= NTDDI_WIN10_RS2
     auto hnd = OpenThread( THREAD_QUERY_LIMITED_INFORMATION, FALSE, (DWORD)id );
     if( hnd != 0 )
     {
@@ -144,8 +144,7 @@ const char* GetThreadName( uint64_t id )
         {
             return buf;
         }
-    }
-//#    endif
+   #    endif
 #  elif defined __GLIBC__ && !defined __ANDROID__ && !defined __EMSCRIPTEN__ && !defined __CYGWIN__
     if( pthread_getname_np( (pthread_t)id, buf, 256 ) == 0 )
     {

@@ -209,25 +209,24 @@ struct sherwood_v3_entry_constexpr
 {
     static constexpr sherwood_v3_entry_constexpr special_end_entry()
     {
-        sherwood_v3_entry_constexpr end;
-        end.distance_from_desired = sherwood_v3_entry<T>::special_end_value;
-        return end;
+        return sherwood_v3_entry_constexpr(sherwood_v3_entry<T>::special_end_value);
     }
 
-    int8_t distance_from_desired = -1;
+    sherwood_v3_entry_constexpr() : distance_from_desired(-1) {}
+    sherwood_v3_entry_constexpr(int8_t distance) : distance_from_desired(distance) { }
+    int8_t distance_from_desired;
     typename std::aligned_storage<sizeof(T), alignof(T)>::type bytes = {};
 };
 static constexpr int8_t min_lookups = 4;
 template<typename T>
 struct EntryDefaultTable
 {
-    static constexpr const sherwood_v3_entry_constexpr<T> table[min_lookups] =
-    {
-        {}, {}, {}, sherwood_v3_entry_constexpr<T>::special_end_entry()
-    };
+    static const sherwood_v3_entry_constexpr<T> table[min_lookups];
 };
-template<typename T>
-constexpr const sherwood_v3_entry_constexpr<T> EntryDefaultTable<T>::table[min_lookups];
+template<typename T> const sherwood_v3_entry_constexpr<T> EntryDefaultTable<T>::table[min_lookups] =
+{
+    {},{},{}, sherwood_v3_entry_constexpr<T>::special_end_entry()
+};
 
 inline int8_t log2(size_t value)
 {
@@ -473,7 +472,10 @@ public:
     template<typename ValueType>
     struct templated_iterator
     {
-        EntryPointer current = EntryPointer();
+        EntryPointer current;
+        templated_iterator() : current(EntryPointer()){}
+        templated_iterator(EntryPointer&& current_) : current(current_) { }
+        templated_iterator(std::initializer_list<EntryPointer> current_) : current(*current_.begin()) { }
 
         using iterator_category = std::forward_iterator_tag;
         using value_type = ValueType;
@@ -517,7 +519,7 @@ public:
 
         operator templated_iterator<const value_type>() const
         {
-            return templated_iterator<const value_type> { current };
+            return templated_iterator<const value_type>({ current });
         }
     };
     using iterator = templated_iterator<value_type>;
@@ -528,7 +530,7 @@ public:
         for (EntryPointer it = entries;; ++it)
         {
             if (it->has_value())
-                return iterator { it };
+                return iterator({ it });
         }
     }
     const_iterator begin() const
@@ -563,7 +565,7 @@ public:
         for (int8_t distance = 0; it->distance_from_desired >= distance; ++distance, ++it)
         {
             if (compares_equal(key, it->value))
-                return iterator { it };
+	            return iterator({ it });
         }
         return end();
     }
@@ -908,10 +910,18 @@ private:
         max_lookups = detailv3::min_lookups - 1;
     }
 
+    template<typename K, typename V>
+    size_t hash_object(const std::pair<K,V> & key)
+    {
+        Hasher & hasher = (static_cast<Hasher &>(*this));
+        return hasher(key.first);
+    }
+
     template<typename U>
     size_t hash_object(const U & key)
     {
-        return static_cast<Hasher &>(*this)(key);
+        Hasher & hasher = (static_cast<Hasher &>(*this));
+        return hasher(key );
     }
     template<typename U>
     size_t hash_object(const U & key) const
